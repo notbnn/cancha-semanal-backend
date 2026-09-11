@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cancha Semanal</title>
+  <style>
+    body { font-family: sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+    img { max-width: 100%; }
+  </style>
+</head>
+<body>
+  <h1 id="titulo">Cargando evento...</h1>
+  <p id="fecha"></p>
+  <p id="cancha"></p>
+  <img id="qr" src="" alt="QR de pago" hidden />
+
+  <form id="form-confirmar">
+    <label>
+      Tu nombre:<br />
+      <input type="text" id="nombreInvitado" required />
+    </label>
+    <br /><br />
+    <label>
+      Tu teléfono (opcional):<br />
+      <input type="tel" id="telefono" />
+    </label>
+    <br /><br />
+    <button type="submit">Confirmar que voy</button>
+  </form>
+
+  <p id="mensaje"></p>
+  <script>
+  const slug = window.location.pathname.split("/").pop();
+
+  async function cargarEvento() {
+    const respuesta = await fetch(`/api/public/eventos/${slug}`);
+
+    if (!respuesta.ok) {
+      document.getElementById("titulo").textContent = "Evento no encontrado";
+      document.getElementById("form-confirmar").hidden = true;
+      return;
+    }
+
+    const evento = await respuesta.json();
+
+    document.getElementById("titulo").textContent = "Partido semanal";
+
+    const fecha = new Date(evento.fecha);
+    document.getElementById("fecha").textContent =
+      "Fecha: " + fecha.toLocaleString("es-AR", { dateStyle: "full", timeStyle: "short" });
+
+    document.getElementById("cancha").textContent =
+      evento.nombreCancha ? "Cancha: " + evento.nombreCancha : "";
+
+    if (evento.qrUrl) {
+      const img = document.getElementById("qr");
+      img.src = evento.qrUrl;
+      img.hidden = false;
+    }
+
+    if (evento.estado === "cerrado") {
+      document.getElementById("mensaje").textContent = "Este evento ya no acepta confirmaciones.";
+      document.getElementById("form-confirmar").hidden = true;
+    }
+  }
+
+  cargarEvento();
+    document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nombreInvitado = document.getElementById("nombreInvitado").value;
+    const telefono = document.getElementById("telefono").value;
+    const mensaje = document.getElementById("mensaje");
+
+    const respuesta = await fetch(`/api/public/eventos/${slug}/confirmar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombreInvitado, telefono: telefono || undefined }),
+    });
+
+    if (respuesta.ok) {
+        mensaje.textContent = "¡Confirmado! Nos vemos en la cancha.";
+        document.getElementById("form-confirmar").hidden = true;
+    } else {
+        const error = await respuesta.json();
+        mensaje.textContent = "Error: " + error.error;
+    }
+    });
+</script>
+</body>
+</html>
