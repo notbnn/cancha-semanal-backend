@@ -5,33 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cancha Semanal</title>
   <style>
-    body { font-family: sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
-    img { max-width: 100%; }
+    :root {
+      --verde: #16a34a;
+      --verde-oscuro: #15803d;
+      --texto: #1f2937;
+      --texto-suave: #6b7280;
+      --fondo: #f3f4f6;
+      --borde: #e5e7eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      margin: 0;
+      padding: 24px 16px 48px;
+    }
+    .contenedor { max-width: 440px; margin: 0 auto; }
+    .tarjeta {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .subtitulo { color: var(--texto-suave); font-size: 14px; margin: 4px 0; }
+    .etiqueta {
+      font-size: 13px; font-weight: 600; color: var(--texto-suave);
+      text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px;
+    }
+    .opciones-pago { display: flex; gap: 8px; }
+    .opciones-pago button {
+      flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--borde);
+      background: #fff; font-size: 15px; font-weight: 600; color: var(--texto); cursor: pointer;
+    }
+    .opciones-pago button.activo {
+      border-color: var(--verde); background: #f0fdf4; color: var(--verde-oscuro);
+    }
+    #qr-contenedor { text-align: center; margin-top: 16px; }
+    #qr-contenedor img { max-width: 100%; border-radius: 12px; border: 1px solid var(--borde); }
+    #qr-contenedor p { font-size: 13px; color: var(--texto-suave); margin-top: 10px; }
+    #efectivo-mensaje, #sin-qr-mensaje {
+      font-size: 14px; color: var(--texto-suave); margin-top: 12px; text-align: center;
+    }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--borde);
+      font-size: 15px; margin-bottom: 16px;
+    }
+    button[type="submit"] {
+      width: 100%; padding: 14px; border-radius: 10px; border: none;
+      background: var(--verde); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    button[type="submit"]:active { background: var(--verde-oscuro); }
+    #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
-  <h1 id="titulo">Cargando evento...</h1>
-  <p id="fecha"></p>
-  <p id="cancha"></p>
-  <img id="qr" src="" alt="QR de pago" hidden />
+  <div class="contenedor">
+    <div class="tarjeta">
+      <h1 id="titulo">Cargando evento...</h1>
+      <p class="subtitulo" id="fecha"></p>
+      <p class="subtitulo" id="cancha"></p>
+    </div>
 
-  <form id="form-confirmar">
-    <label>
-      Tu nombre:<br />
-      <input type="text" id="nombreInvitado" required />
-    </label>
-    <br /><br />
-    <label>
-      Tu teléfono (opcional):<br />
-      <input type="tel" id="telefono" />
-    </label>
-    <br /><br />
-    <button type="submit">Confirmar que voy</button>
-  </form>
+    <div class="tarjeta">
+      <div class="etiqueta">¿Cómo vas a pagar?</div>
+      <div class="opciones-pago">
+        <button type="button" id="btn-qr">QR</button>
+        <button type="button" id="btn-efectivo">Efectivo</button>
+      </div>
 
-  <p id="mensaje"></p>
+      <div id="qr-contenedor" hidden>
+        <img id="qr" src="" alt="QR de pago" />
+        <p>Sacale una captura de pantalla a este QR y pagá con tu app del banco o billetera.</p>
+      </div>
+      <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — pagá en efectivo o consultale directamente.</p>
+      <p id="efectivo-mensaje" hidden>Vas a pagar en efectivo, directo en la cancha.</p>
+    </div>
+
+    <div class="tarjeta">
+      <form id="form-confirmar">
+        <label for="nombreInvitado">Tu nombre</label>
+        <input type="text" id="nombreInvitado" required />
+
+        <label for="telefono">Tu teléfono (opcional)</label>
+        <input type="tel" id="telefono" />
+
+        <button type="submit">Confirmar que voy</button>
+      </form>
+      <p id="mensaje"></p>
+    </div>
+  </div>
+
   <script>
   const slug = window.location.pathname.split("/").pop();
+  let tieneQr = false;
+
+  function elegirPago(metodo) {
+    document.getElementById("btn-qr").classList.toggle("activo", metodo === "qr");
+    document.getElementById("btn-efectivo").classList.toggle("activo", metodo === "efectivo");
+
+    document.getElementById("qr-contenedor").hidden = !(metodo === "qr" && tieneQr);
+    document.getElementById("sin-qr-mensaje").hidden = !(metodo === "qr" && !tieneQr);
+    document.getElementById("efectivo-mensaje").hidden = metodo !== "efectivo";
+  }
+
+  document.getElementById("btn-qr").addEventListener("click", () => elegirPago("qr"));
+  document.getElementById("btn-efectivo").addEventListener("click", () => elegirPago("efectivo"));
 
   async function cargarEvento() {
     const respuesta = await fetch(`/api/public/eventos/${slug}`);
@@ -54,9 +137,8 @@
       evento.nombreCancha ? "Cancha: " + evento.nombreCancha : "";
 
     if (evento.qrUrl) {
-      const img = document.getElementById("qr");
-      img.src = evento.qrUrl;
-      img.hidden = false;
+      tieneQr = true;
+      document.getElementById("qr").src = evento.qrUrl;
     }
 
     if (evento.estado === "cerrado") {
@@ -66,7 +148,8 @@
   }
 
   cargarEvento();
-    document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
+
+  document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const nombreInvitado = document.getElementById("nombreInvitado").value;
