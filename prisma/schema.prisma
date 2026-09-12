@@ -20,6 +20,7 @@ model Evento {
   // Nullable a propósito: se completa recién en POST /api/eventos/:id/qr,
   // después de crear el evento (§04) — no existe todavía al crearlo.
   qrUrl         String?  @map("qr_url")
+  horaFin       String?  @map("hora_fin")
   estado        String   @default("abierto")
   // Token que la app guarda en secure storage para autenticar los
   // endpoints de admin de este evento (§04). MVP: token simple por evento,

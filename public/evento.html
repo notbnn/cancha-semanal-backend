@@ -6,12 +6,14 @@
   <title>Cancha Semanal</title>
   <style>
     :root {
-      --verde: #16a34a;
-      --verde-oscuro: #15803d;
-      --texto: #1f2937;
-      --texto-suave: #6b7280;
-      --fondo: #f3f4f6;
-      --borde: #e5e7eb;
+      --verde: #22c55e;
+      --verde-oscuro: #16a34a;
+      --verde-suave: rgba(34, 197, 94, 0.15);
+      --texto: #f1f5f9;
+      --texto-suave: #94a3b8;
+      --fondo: #0f172a;
+      --tarjeta: #1e293b;
+      --borde: #334155;
     }
     * { box-sizing: border-box; }
     body {
@@ -23,13 +25,14 @@
     }
     .contenedor { max-width: 440px; margin: 0 auto; }
     .tarjeta {
-      background: #fff;
+      background: var(--tarjeta);
+      border: 1px solid var(--borde);
       border-radius: 16px;
       padding: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
-    h1 { font-size: 20px; margin: 0 0 4px; }
+    h1 { font-size: 20px; margin: 0 0 4px; color: var(--texto); }
     .subtitulo { color: var(--texto-suave); font-size: 14px; margin: 4px 0; }
     .etiqueta {
       font-size: 13px; font-weight: 600; color: var(--texto-suave);
@@ -38,25 +41,29 @@
     .opciones-pago { display: flex; gap: 8px; }
     .opciones-pago button {
       flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--borde);
-      background: #fff; font-size: 15px; font-weight: 600; color: var(--texto); cursor: pointer;
+      background: var(--fondo); font-size: 15px; font-weight: 600; color: var(--texto); cursor: pointer;
     }
     .opciones-pago button.activo {
-      border-color: var(--verde); background: #f0fdf4; color: var(--verde-oscuro);
+      border-color: var(--verde); background: var(--verde-suave); color: var(--verde);
     }
     #qr-contenedor { text-align: center; margin-top: 16px; }
-    #qr-contenedor img { max-width: 100%; border-radius: 12px; border: 1px solid var(--borde); }
+    #qr-contenedor img {
+      max-width: 100%; border-radius: 12px; border: 1px solid var(--borde); background: #fff; padding: 8px;
+    }
     #qr-contenedor p { font-size: 13px; color: var(--texto-suave); margin-top: 10px; }
     #efectivo-mensaje, #sin-qr-mensaje {
       font-size: 14px; color: var(--texto-suave); margin-top: 12px; text-align: center;
     }
-    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto); }
     input {
       width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--borde);
-      font-size: 15px; margin-bottom: 16px;
+      font-size: 15px; margin-bottom: 16px; background: var(--fondo); color: var(--texto);
     }
+    input::placeholder { color: var(--texto-suave); }
+    input:focus { outline: none; border-color: var(--verde); }
     button[type="submit"] {
       width: 100%; padding: 14px; border-radius: 10px; border: none;
-      background: var(--verde); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+      background: var(--verde); color: #0f172a; font-size: 16px; font-weight: 700; cursor: pointer;
     }
     button[type="submit"]:active { background: var(--verde-oscuro); }
     #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
@@ -116,6 +123,12 @@
   document.getElementById("btn-qr").addEventListener("click", () => elegirPago("qr"));
   document.getElementById("btn-efectivo").addEventListener("click", () => elegirPago("efectivo"));
 
+  // "20:00" -> "20:00", tolera "9:00" -> "09:00" por si algún día se manda sin cero.
+  function formatearHora(hhmm) {
+    const [h, m] = hhmm.split(":");
+    return h.padStart(2, "0") + ":" + m;
+  }
+
   async function cargarEvento() {
     const respuesta = await fetch(`/api/public/eventos/${slug}`);
 
@@ -130,8 +143,13 @@
     document.getElementById("titulo").textContent = "Partido semanal";
 
     const fecha = new Date(evento.fecha);
-    document.getElementById("fecha").textContent =
-      "Fecha: " + fecha.toLocaleString("es-AR", { dateStyle: "full", timeStyle: "short" });
+    const fechaTexto = fecha.toLocaleDateString("es-AR", { dateStyle: "full" });
+    const horaInicio = fecha.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const rangoHora = evento.horaFin
+      ? `de ${horaInicio} a ${formatearHora(evento.horaFin)}`
+      : `a las ${horaInicio}`;
+
+    document.getElementById("fecha").textContent = `${fechaTexto}, ${rangoHora}`;
 
     document.getElementById("cancha").textContent =
       evento.nombreCancha ? "Cancha: " + evento.nombreCancha : "";

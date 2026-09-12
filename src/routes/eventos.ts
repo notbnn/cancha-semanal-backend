@@ -10,7 +10,7 @@ export const eventosRouter = Router();
 // puede crear un evento; lo que protege el evento después es el
 // adminToken que se devuelve acá UNA sola vez.
 eventosRouter.post("/", async (req, res) => {
-  const { fecha, nombreCancha } = req.body ?? {};
+    const { fecha, nombreCancha, horaFin } = req.body ?? {};
 
   if (!fecha || Number.isNaN(new Date(fecha).getTime())) {
     return res
@@ -19,6 +19,11 @@ eventosRouter.post("/", async (req, res) => {
   }
   if (nombreCancha !== undefined && typeof nombreCancha !== "string") {
     return res.status(400).json({ error: "nombreCancha tiene que ser texto" });
+  }
+    // "HH:mm" simple, ej. "22:00" — no validamos que sea posterior a la hora
+  // de inicio, es solo un dato informativo para la página pública.
+  if (horaFin !== undefined && !/^\d{2}:\d{2}$/.test(horaFin)) {
+    return res.status(400).json({ error: 'horaFin tiene que tener formato "HH:mm"' });
   }
 
   const adminToken = generarAdminToken();

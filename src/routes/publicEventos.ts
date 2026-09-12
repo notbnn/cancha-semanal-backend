@@ -11,11 +11,12 @@ function aVistaPublica(evento: {
   fecha: Date;
   nombreCancha: string | null;
   qrUrl: string | null;
+  horaFin: string | null;
   estado: string;
   creadoEn: Date;
 }) {
-  const { id, slug, fecha, nombreCancha, qrUrl, estado, creadoEn } = evento;
-  return { id, slug, fecha, nombreCancha, qrUrl, estado, creadoEn };
+  const { id, slug, fecha, nombreCancha, qrUrl, horaFin, estado, creadoEn } = evento;
+  return { id, slug, fecha, nombreCancha, qrUrl, horaFin, estado, creadoEn };
 }
 
 // GET /api/public/eventos/:slug — lo que abre el invitado desde el link
