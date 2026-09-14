@@ -17,5 +17,8 @@ recuperarRouter.get("/:slug", requireRecoverySecret, async (req, res) => {
     return res.status(404).json({ error: "Evento no encontrado" });
   }
 
-  return res.json(evento);
+  // Omitimos qrUrl a propósito: es un string base64 gigante y no hace
+  // falta para reconectar la app a este evento.
+  const { qrUrl, ...eventoSinQr } = evento;
+  return res.json(eventoSinQr);
 });
