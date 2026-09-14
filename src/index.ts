@@ -5,6 +5,7 @@ import path from "path";
 import { prisma } from "./lib/prisma";
 import { eventosRouter } from "./routes/eventos";
 import { publicEventosRouter } from "./routes/publicEventos";
+import { recuperarRouter } from "./routes/recuperar";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.get("/e/:slug", (_req, res) => {
 app.use("/api/eventos", eventosRouter);
 // Endpoints públicos — sin auth, es lo que ve el invitado desde el link (§04)
 app.use("/api/public/eventos", publicEventosRouter);
+app.use("/api/recuperar", recuperarRouter);
 
 const port = process.env.PORT ?? 3000;
 app.listen(port, () => {
