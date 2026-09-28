@@ -19,6 +19,9 @@ function aVistaPublica(evento: {
   return { id, slug, fecha, nombreCancha, qrUrl, horaFin, estado, creadoEn };
 }
 
+// Teléfono boliviano: empieza con 6 o 7 (celulares), 8 dígitos en total.
+const TELEFONO_BOLIVIA = /^[67]\d{7}$/;
+
 // GET /api/public/eventos/:slug — lo que abre el invitado desde el link
 // de WhatsApp: fecha, cancha, QR y si todavía se puede confirmar.
 publicEventosRouter.get("/:slug", async (req, res) => {
@@ -33,6 +36,27 @@ publicEventosRouter.get("/:slug", async (req, res) => {
   return res.json(aVistaPublica(evento));
 });
 
+// GET /api/public/eventos/:slug/confirmaciones — lista pública de quién ya
+// confirmó. Solo nombres (sin teléfono ni IP): eso es privado, solo lo ve
+// el organizador desde la app vía el endpoint de admin en eventos.ts.
+publicEventosRouter.get("/:slug/confirmaciones", async (req, res) => {
+  const evento = await prisma.evento.findUnique({
+    where: { slug: req.params.slug },
+  });
+
+  if (!evento) {
+    return res.status(404).json({ error: "Evento no encontrado" });
+  }
+
+  const confirmaciones = await prisma.confirmacion.findMany({
+    where: { eventoId: evento.id },
+    orderBy: { creadoEn: "asc" },
+    select: { nombreInvitado: true, creadoEn: true },
+  });
+
+  return res.json(confirmaciones);
+});
+
 // POST /api/public/eventos/:slug/confirmar — el invitado confirma que va.
 // Sin auth (es público), pero valida que el evento siga abierto.
 publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
@@ -41,8 +65,10 @@ publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
   if (!nombreInvitado || typeof nombreInvitado !== "string" || !nombreInvitado.trim()) {
     return res.status(400).json({ error: "nombreInvitado es obligatorio" });
   }
-  if (telefono !== undefined && typeof telefono !== "string") {
-    return res.status(400).json({ error: "telefono tiene que ser texto" });
+  if (typeof telefono !== "string" || !TELEFONO_BOLIVIA.test(telefono.trim())) {
+    return res.status(400).json({
+      error: "telefono es obligatorio: tiene que empezar con 6 o 7 y tener 8 dígitos",
+    });
   }
 
   const evento = await prisma.evento.findUnique({
@@ -60,7 +86,7 @@ publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
     data: {
       eventoId: evento.id,
       nombreInvitado: nombreInvitado.trim(),
-      telefono,
+      telefono: telefono.trim(),
       ipOrigen: req.ip,
     },
   });

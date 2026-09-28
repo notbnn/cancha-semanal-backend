@@ -61,12 +61,20 @@
     }
     input::placeholder { color: var(--texto-suave); }
     input:focus { outline: none; border-color: var(--verde); }
+    .pista-telefono {
+      font-size: 12px; color: var(--texto-suave); margin-top: -12px; margin-bottom: 16px;
+    }
     button[type="submit"] {
       width: 100%; padding: 14px; border-radius: 10px; border: none;
       background: var(--verde); color: #0f172a; font-size: 16px; font-weight: 700; cursor: pointer;
     }
     button[type="submit"]:active { background: var(--verde-oscuro); }
     #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
+    .lista-confirmados { list-style: none; margin: 0; padding: 0; }
+    .lista-confirmados li {
+      padding: 8px 0; border-bottom: 1px solid var(--borde); font-size: 14px; color: var(--texto);
+    }
+    .lista-confirmados li:last-child { border-bottom: none; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -98,12 +106,27 @@
         <label for="nombreInvitado">Tu nombre</label>
         <input type="text" id="nombreInvitado" required />
 
-        <label for="telefono">Tu teléfono (opcional)</label>
-        <input type="tel" id="telefono" />
+        <label for="telefono">Tu teléfono</label>
+        <input
+          type="tel"
+          id="telefono"
+          required
+          pattern="[67][0-9]{7}"
+          inputmode="numeric"
+          maxlength="8"
+          placeholder="71234567"
+        />
+        <p class="pista-telefono">Empieza con 6 o 7, 8 dígitos en total.</p>
 
         <button type="submit">Confirmar que voy</button>
       </form>
       <p id="mensaje"></p>
+    </div>
+
+    <div class="tarjeta">
+      <div class="etiqueta">Quiénes van (<span id="cantidad-confirmados">0</span>)</div>
+      <ul id="lista-confirmados" class="lista-confirmados"></ul>
+      <p id="sin-confirmados" class="subtitulo" hidden>Todavía nadie confirmó.</p>
     </div>
   </div>
 
@@ -165,7 +188,27 @@
     }
   }
 
+  async function cargarConfirmados() {
+    const respuesta = await fetch(`/api/public/eventos/${slug}/confirmaciones`);
+    if (!respuesta.ok) return;
+
+    const confirmaciones = await respuesta.json();
+    const lista = document.getElementById("lista-confirmados");
+    const sinConfirmados = document.getElementById("sin-confirmados");
+
+    lista.innerHTML = "";
+    document.getElementById("cantidad-confirmados").textContent = confirmaciones.length;
+    sinConfirmados.hidden = confirmaciones.length > 0;
+
+    for (const c of confirmaciones) {
+      const li = document.createElement("li");
+      li.textContent = c.nombreInvitado;
+      lista.appendChild(li);
+    }
+  }
+
   cargarEvento();
+  cargarConfirmados();
 
   document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -177,12 +220,13 @@
     const respuesta = await fetch(`/api/public/eventos/${slug}/confirmar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombreInvitado, telefono: telefono || undefined }),
+        body: JSON.stringify({ nombreInvitado, telefono }),
     });
 
     if (respuesta.ok) {
         mensaje.textContent = "¡Confirmado! Nos vemos en la cancha.";
         document.getElementById("form-confirmar").hidden = true;
+        cargarConfirmados();
     } else {
         const error = await respuesta.json();
         mensaje.textContent = "Error: " + error.error;
