@@ -74,6 +74,10 @@
     }
     button[type="submit"]:active { background: var(--verde-oscuro); }
     #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
+    #ubicacion-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+      color: var(--verde); font-size: 14px; font-weight: 600; text-decoration: none;
+    }
     .nota-identidad {
       font-size: 12px; color: var(--texto-suave); margin-top: 14px;
       line-height: 1.5; text-align: center;
@@ -100,6 +104,7 @@
       <h1 id="titulo">Cargando evento...</h1>
       <p class="subtitulo" id="fecha"></p>
       <p class="subtitulo" id="cancha"></p>
+      <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
     </div>
 
     <div class="tabs">
@@ -117,11 +122,11 @@
 
         <div id="qr-contenedor" hidden>
           <img id="qr" src="" alt="QR de pago" />
-          <p>Sacale una captura de pantalla a este QR y pagá con tu app del banco o billetera.</p>
+          <p>Saca una captura de pantalla a este QR y paga con tu app del banco o billetera.</p>
         </div>
-        <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — pagá en efectivo o consultale directamente.</p>
+        <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — paga en efectivo o consúltale directamente.</p>
         <p id="efectivo-mensaje" hidden>Vas a pagar en efectivo, directo en la cancha.</p>
-        <p id="pago-requerido" hidden>Elegí un método de pago para poder confirmar.</p>
+        <p id="pago-requerido" hidden>Elige un método de pago para poder confirmar.</p>
       </div>
 
       <div class="tarjeta">
@@ -145,8 +150,8 @@
         </form>
         <p id="mensaje"></p>
         <p class="nota-identidad">
-          Tu teléfono es lo que te identifica en la lista — usá siempre el mismo,
-          cada semana. Aun así, escribí bien tu nombre y elegí cómo vas a pagar:
+          Tu teléfono es lo que te identifica en la lista — usa siempre el mismo,
+          cada semana. Aun así, escribe bien tu nombre y elige cómo vas a pagar:
           eso es lo que va a ver el organizador.
         </p>
       </div>
@@ -245,6 +250,12 @@
 
     document.getElementById("cancha").textContent =
       evento.nombreCancha ? "Cancha: " + evento.nombreCancha : "";
+
+    if (evento.ubicacionUrl) {
+      const link = document.getElementById("ubicacion-link");
+      link.href = evento.ubicacionUrl;
+      link.hidden = false;
+    }
 
     if (evento.qrUrl) {
       tieneQr = true;

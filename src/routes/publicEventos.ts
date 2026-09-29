@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
 export const publicEventosRouter = Router();
@@ -12,11 +13,12 @@ function aVistaPublica(evento: {
   nombreCancha: string | null;
   qrUrl: string | null;
   horaFin: string | null;
+  ubicacionUrl: string | null;
   estado: string;
   creadoEn: Date;
 }) {
-  const { id, slug, fecha, nombreCancha, qrUrl, horaFin, estado, creadoEn } = evento;
-  return { id, slug, fecha, nombreCancha, qrUrl, horaFin, estado, creadoEn };
+  const { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn } = evento;
+  return { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn };
 }
 
 // Teléfono boliviano: empieza con 6 o 7 (celulares), 8 dígitos en total.
@@ -88,15 +90,44 @@ publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
     return res.status(409).json({ error: "Este evento ya no acepta confirmaciones" });
   }
 
-  const confirmacion = await prisma.confirmacion.create({
-    data: {
-      eventoId: evento.id,
-      nombreInvitado: nombreInvitado.trim(),
-      telefono: telefono.trim(),
-      metodoPago,
-      ipOrigen: req.ip,
-    },
-  });
+  const telefonoLimpio = telefono.trim();
 
-  return res.status(201).json(confirmacion);
+  // Chequeo explicito ademas del constraint de la base: da un mensaje
+  // mas claro que dejar que reviente el P2002 en el caso normal (sin
+  // condicion de carrera).
+  const yaConfirmo = await prisma.confirmacion.findFirst({
+    where: { eventoId: evento.id, telefono: telefonoLimpio },
+  });
+  if (yaConfirmo) {
+    return res.status(409).json({
+      error: "Ya confirmaste con este número para este partido",
+    });
+  }
+
+  try {
+    const confirmacion = await prisma.confirmacion.create({
+      data: {
+        eventoId: evento.id,
+        nombreInvitado: nombreInvitado.trim(),
+        telefono: telefonoLimpio,
+        metodoPago,
+        ipOrigen: req.ip,
+      },
+    });
+
+    return res.status(201).json(confirmacion);
+  } catch (err) {
+    // Red de seguridad por si dos confirmaciones con el mismo telefono
+    // llegan casi al mismo tiempo (condicion de carrera) — el constraint
+    // @@unique de la base las frena aunque el chequeo de arriba no llegue.
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      return res.status(409).json({
+        error: "Ya confirmaste con este número para este partido",
+      });
+    }
+    throw err;
+  }
 });

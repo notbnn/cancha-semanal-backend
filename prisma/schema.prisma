@@ -24,6 +24,12 @@ model Evento {
   // vive en `fecha` (incluye fecha+hora), esto es únicamente para mostrar
   // "de 20:00 a 22:00" en la página pública — no se usa para lógica.
   horaFin       String?  @map("hora_fin")
+  // Link de Google Maps tal cual lo comparte la app de Maps (boton
+  // "Compartir"). No guardamos lat/lng ni nada estructurado — es un MVP,
+  // solo necesitamos poder abrirlo. Se valida que sea texto no vacio, no
+  // que sea una URL real (si el organizador pega cualquier cosa, es su
+  // problema, no rompe nada del backend).
+  ubicacionUrl  String?  @map("ubicacion_url")
   estado        String   @default("abierto")
   // Token que la app guarda en secure storage para autenticar los
   // endpoints de admin de este evento (§04). MVP: token simple por evento,
@@ -49,5 +55,9 @@ model Confirmacion {
   creadoEn       DateTime @default(now()) @map("creado_en")
 
   @@index([eventoId])
+  // Mismo telefono no puede confirmar dos veces para el mismo partido.
+  // Postgres no cuenta los NULL como iguales entre si, asi que esto no
+  // choca con las confirmaciones viejas que tienen telefono null.
+  @@unique([eventoId, telefono])
   @@map("confirmaciones")
 }

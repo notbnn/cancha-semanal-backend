@@ -10,7 +10,7 @@ export const eventosRouter = Router();
 // puede crear un evento; lo que protege el evento después es el
 // adminToken que se devuelve acá UNA sola vez.
 eventosRouter.post("/", async (req, res) => {
-    const { fecha, nombreCancha, horaFin } = req.body ?? {};
+    const { fecha, nombreCancha, horaFin, ubicacionUrl } = req.body ?? {};
 
   if (!fecha || Number.isNaN(new Date(fecha).getTime())) {
     return res
@@ -24,6 +24,9 @@ eventosRouter.post("/", async (req, res) => {
   // de inicio, es solo un dato informativo para la página pública.
   if (horaFin !== undefined && !/^\d{2}:\d{2}$/.test(horaFin)) {
     return res.status(400).json({ error: 'horaFin tiene que tener formato "HH:mm"' });
+  }
+  if (ubicacionUrl !== undefined && typeof ubicacionUrl !== "string") {
+    return res.status(400).json({ error: "ubicacionUrl tiene que ser texto" });
   }
 
   const adminToken = generarAdminToken();
@@ -39,6 +42,8 @@ eventosRouter.post("/", async (req, res) => {
           slug,
           fecha: new Date(fecha),
           nombreCancha,
+          horaFin,
+          ubicacionUrl,
           adminToken,
         },
       });
@@ -126,7 +131,7 @@ eventosRouter.patch(
 // PATCH /api/eventos/:id — actualizar evento. Uso principal: cerrar el
 // partido (estado: "cerrado"), pero también deja corregir fecha/cancha.
 eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
-  const { estado, nombreCancha, fecha } = req.body ?? {};
+  const { estado, nombreCancha, fecha, ubicacionUrl } = req.body ?? {};
   const data: Prisma.EventoUpdateInput = {};
 
   if (estado !== undefined) {
@@ -146,6 +151,12 @@ eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
       return res.status(400).json({ error: "fecha tiene que ser una fecha válida (ISO 8601)" });
     }
     data.fecha = new Date(fecha);
+  }
+  if (ubicacionUrl !== undefined) {
+    if (typeof ubicacionUrl !== "string") {
+      return res.status(400).json({ error: "ubicacionUrl tiene que ser texto" });
+    }
+    data.ubicacionUrl = ubicacionUrl;
   }
   if (Object.keys(data).length === 0) {
     return res.status(400).json({ error: "Mandá al menos un campo para actualizar" });
