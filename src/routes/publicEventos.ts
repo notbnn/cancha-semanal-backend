@@ -21,6 +21,7 @@ function aVistaPublica(evento: {
 
 // Teléfono boliviano: empieza con 6 o 7 (celulares), 8 dígitos en total.
 const TELEFONO_BOLIVIA = /^[67]\d{7}$/;
+const METODOS_PAGO_VALIDOS = ["qr", "efectivo"];
 
 // GET /api/public/eventos/:slug — lo que abre el invitado desde el link
 // de WhatsApp: fecha, cancha, QR y si todavía se puede confirmar.
@@ -60,7 +61,7 @@ publicEventosRouter.get("/:slug/confirmaciones", async (req, res) => {
 // POST /api/public/eventos/:slug/confirmar — el invitado confirma que va.
 // Sin auth (es público), pero valida que el evento siga abierto.
 publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
-  const { nombreInvitado, telefono } = req.body ?? {};
+  const { nombreInvitado, telefono, metodoPago } = req.body ?? {};
 
   if (!nombreInvitado || typeof nombreInvitado !== "string" || !nombreInvitado.trim()) {
     return res.status(400).json({ error: "nombreInvitado es obligatorio" });
@@ -68,6 +69,11 @@ publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
   if (typeof telefono !== "string" || !TELEFONO_BOLIVIA.test(telefono.trim())) {
     return res.status(400).json({
       error: "telefono es obligatorio: tiene que empezar con 6 o 7 y tener 8 dígitos",
+    });
+  }
+  if (typeof metodoPago !== "string" || !METODOS_PAGO_VALIDOS.includes(metodoPago)) {
+    return res.status(400).json({
+      error: 'metodoPago es obligatorio: tiene que ser "qr" o "efectivo"',
     });
   }
 
@@ -87,6 +93,7 @@ publicEventosRouter.post("/:slug/confirmar", async (req, res) => {
       eventoId: evento.id,
       nombreInvitado: nombreInvitado.trim(),
       telefono: telefono.trim(),
+      metodoPago,
       ipOrigen: req.ip,
     },
   });

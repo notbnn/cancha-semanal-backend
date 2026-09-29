@@ -14,6 +14,7 @@
       --fondo: #0f172a;
       --tarjeta: #1e293b;
       --borde: #334155;
+      --rojo: #f87171;
     }
     * { box-sizing: border-box; }
     body {
@@ -54,6 +55,9 @@
     #efectivo-mensaje, #sin-qr-mensaje {
       font-size: 14px; color: var(--texto-suave); margin-top: 12px; text-align: center;
     }
+    #pago-requerido {
+      font-size: 13px; color: var(--rojo); margin-top: 12px; text-align: center;
+    }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto); }
     input {
       width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--borde);
@@ -70,9 +74,21 @@
     }
     button[type="submit"]:active { background: var(--verde-oscuro); }
     #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
+    .nota-identidad {
+      font-size: 12px; color: var(--texto-suave); margin-top: 14px;
+      line-height: 1.5; text-align: center;
+    }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tabs button {
+      flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--borde);
+      background: var(--tarjeta); font-size: 14px; font-weight: 600; color: var(--texto-suave); cursor: pointer;
+    }
+    .tabs button.activo {
+      border-color: var(--verde); background: var(--verde-suave); color: var(--verde);
+    }
     .lista-confirmados { list-style: none; margin: 0; padding: 0; }
     .lista-confirmados li {
-      padding: 8px 0; border-bottom: 1px solid var(--borde); font-size: 14px; color: var(--texto);
+      padding: 10px 0; border-bottom: 1px solid var(--borde); font-size: 15px; color: var(--texto);
     }
     .lista-confirmados li:last-child { border-bottom: none; }
     [hidden] { display: none !important; }
@@ -86,55 +102,72 @@
       <p class="subtitulo" id="cancha"></p>
     </div>
 
-    <div class="tarjeta">
-      <div class="etiqueta">¿Cómo vas a pagar?</div>
-      <div class="opciones-pago">
-        <button type="button" id="btn-qr">QR</button>
-        <button type="button" id="btn-efectivo">Efectivo</button>
-      </div>
-
-      <div id="qr-contenedor" hidden>
-        <img id="qr" src="" alt="QR de pago" />
-        <p>Sacale una captura de pantalla a este QR y pagá con tu app del banco o billetera.</p>
-      </div>
-      <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — pagá en efectivo o consultale directamente.</p>
-      <p id="efectivo-mensaje" hidden>Vas a pagar en efectivo, directo en la cancha.</p>
+    <div class="tabs">
+      <button type="button" id="tab-confirmar" class="activo">Confirmar</button>
+      <button type="button" id="tab-lista">Ver lista</button>
     </div>
 
-    <div class="tarjeta">
-      <form id="form-confirmar">
-        <label for="nombreInvitado">Tu nombre</label>
-        <input type="text" id="nombreInvitado" required />
+    <div id="panel-confirmar">
+      <div class="tarjeta">
+        <div class="etiqueta">¿Cómo vas a pagar?</div>
+        <div class="opciones-pago">
+          <button type="button" id="btn-qr">QR</button>
+          <button type="button" id="btn-efectivo">Efectivo</button>
+        </div>
 
-        <label for="telefono">Tu teléfono</label>
-        <input
-          type="tel"
-          id="telefono"
-          required
-          pattern="[67][0-9]{7}"
-          inputmode="numeric"
-          maxlength="8"
-          placeholder="71234567"
-        />
-        <p class="pista-telefono">Empieza con 6 o 7, 8 dígitos en total.</p>
+        <div id="qr-contenedor" hidden>
+          <img id="qr" src="" alt="QR de pago" />
+          <p>Sacale una captura de pantalla a este QR y pagá con tu app del banco o billetera.</p>
+        </div>
+        <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — pagá en efectivo o consultale directamente.</p>
+        <p id="efectivo-mensaje" hidden>Vas a pagar en efectivo, directo en la cancha.</p>
+        <p id="pago-requerido" hidden>Elegí un método de pago para poder confirmar.</p>
+      </div>
 
-        <button type="submit">Confirmar que voy</button>
-      </form>
-      <p id="mensaje"></p>
+      <div class="tarjeta">
+        <form id="form-confirmar">
+          <label for="nombreInvitado">Tu nombre</label>
+          <input type="text" id="nombreInvitado" required />
+
+          <label for="telefono">Tu teléfono</label>
+          <input
+            type="tel"
+            id="telefono"
+            required
+            pattern="[67][0-9]{7}"
+            inputmode="numeric"
+            maxlength="8"
+            placeholder="71234567"
+          />
+          <p class="pista-telefono">Empieza con 6 o 7, 8 dígitos en total.</p>
+
+          <button type="submit">Confirmar que voy</button>
+        </form>
+        <p id="mensaje"></p>
+        <p class="nota-identidad">
+          Tu teléfono es lo que te identifica en la lista — usá siempre el mismo,
+          cada semana. Aun así, escribí bien tu nombre y elegí cómo vas a pagar:
+          eso es lo que va a ver el organizador.
+        </p>
+      </div>
     </div>
 
-    <div class="tarjeta">
-      <div class="etiqueta">Quiénes van (<span id="cantidad-confirmados">0</span>)</div>
+    <div id="panel-lista" class="tarjeta" hidden>
+      <div class="etiqueta">Quiénes ya confirmaron</div>
       <ul id="lista-confirmados" class="lista-confirmados"></ul>
-      <p id="sin-confirmados" class="subtitulo" hidden>Todavía nadie confirmó.</p>
+      <p id="lista-vacia" class="subtitulo" hidden>Todavía no hay nadie confirmado.</p>
     </div>
   </div>
 
   <script>
   const slug = window.location.pathname.split("/").pop();
   let tieneQr = false;
+  let metodoPago = null;
 
   function elegirPago(metodo) {
+    metodoPago = metodo;
+    document.getElementById("pago-requerido").hidden = true;
+
     document.getElementById("btn-qr").classList.toggle("activo", metodo === "qr");
     document.getElementById("btn-efectivo").classList.toggle("activo", metodo === "efectivo");
 
@@ -145,6 +178,42 @@
 
   document.getElementById("btn-qr").addEventListener("click", () => elegirPago("qr"));
   document.getElementById("btn-efectivo").addEventListener("click", () => elegirPago("efectivo"));
+
+  function mostrarTab(tab) {
+    const esConfirmar = tab === "confirmar";
+    document.getElementById("tab-confirmar").classList.toggle("activo", esConfirmar);
+    document.getElementById("tab-lista").classList.toggle("activo", !esConfirmar);
+    document.getElementById("panel-confirmar").hidden = !esConfirmar;
+    document.getElementById("panel-lista").hidden = esConfirmar;
+
+    if (!esConfirmar) cargarLista();
+  }
+
+  document.getElementById("tab-confirmar").addEventListener("click", () => mostrarTab("confirmar"));
+  document.getElementById("tab-lista").addEventListener("click", () => mostrarTab("lista"));
+
+  async function cargarLista() {
+    const lista = document.getElementById("lista-confirmados");
+    const vacia = document.getElementById("lista-vacia");
+
+    const respuesta = await fetch(`/api/public/eventos/${slug}/confirmaciones`);
+    if (!respuesta.ok) return;
+
+    const confirmaciones = await respuesta.json();
+    lista.innerHTML = "";
+
+    if (confirmaciones.length === 0) {
+      vacia.hidden = false;
+      return;
+    }
+    vacia.hidden = true;
+
+    for (const c of confirmaciones) {
+      const li = document.createElement("li");
+      li.textContent = c.nombreInvitado;
+      lista.appendChild(li);
+    }
+  }
 
   // "20:00" -> "20:00", tolera "9:00" -> "09:00" por si algún día se manda sin cero.
   function formatearHora(hhmm) {
@@ -188,30 +257,16 @@
     }
   }
 
-  async function cargarConfirmados() {
-    const respuesta = await fetch(`/api/public/eventos/${slug}/confirmaciones`);
-    if (!respuesta.ok) return;
-
-    const confirmaciones = await respuesta.json();
-    const lista = document.getElementById("lista-confirmados");
-    const sinConfirmados = document.getElementById("sin-confirmados");
-
-    lista.innerHTML = "";
-    document.getElementById("cantidad-confirmados").textContent = confirmaciones.length;
-    sinConfirmados.hidden = confirmaciones.length > 0;
-
-    for (const c of confirmaciones) {
-      const li = document.createElement("li");
-      li.textContent = c.nombreInvitado;
-      lista.appendChild(li);
-    }
-  }
-
   cargarEvento();
-  cargarConfirmados();
 
   document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (!metodoPago) {
+      document.getElementById("pago-requerido").hidden = false;
+      document.getElementById("pago-requerido").scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     const nombreInvitado = document.getElementById("nombreInvitado").value;
     const telefono = document.getElementById("telefono").value;
@@ -220,13 +275,12 @@
     const respuesta = await fetch(`/api/public/eventos/${slug}/confirmar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombreInvitado, telefono }),
+        body: JSON.stringify({ nombreInvitado, telefono, metodoPago }),
     });
 
     if (respuesta.ok) {
         mensaje.textContent = "¡Confirmado! Nos vemos en la cancha.";
         document.getElementById("form-confirmar").hidden = true;
-        cargarConfirmados();
     } else {
         const error = await respuesta.json();
         mensaje.textContent = "Error: " + error.error;

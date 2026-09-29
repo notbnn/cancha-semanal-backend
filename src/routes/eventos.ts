@@ -89,6 +89,40 @@ eventosRouter.get("/:id/confirmaciones", requireAdminToken, async (_req, res) =>
   return res.json(confirmaciones);
 });
 
+// PATCH /api/eventos/:id/confirmaciones/:confirmacionId — el organizador
+// corrige el nombre de un invitado desde la app (la app ahora tambien le
+// habla al backend, no solo al reves). Solo toca el nombre; telefono y
+// metodo de pago los sigue mandando unicamente el invitado.
+eventosRouter.patch(
+  "/:id/confirmaciones/:confirmacionId",
+  requireAdminToken,
+  async (req, res) => {
+    const { nombreInvitado } = req.body ?? {};
+
+    if (!nombreInvitado || typeof nombreInvitado !== "string" || !nombreInvitado.trim()) {
+      return res.status(400).json({ error: "nombreInvitado es obligatorio" });
+    }
+
+    const confirmacion = await prisma.confirmacion.findUnique({
+      where: { id: req.params.confirmacionId },
+    });
+
+    // Chequeamos que la confirmacion exista Y que sea de este mismo evento
+    // (el adminToken solo prueba que sos dueno de :id, no de cualquier
+    // confirmacion al azar).
+    if (!confirmacion || confirmacion.eventoId !== res.locals.evento.id) {
+      return res.status(404).json({ error: "Confirmacion no encontrada para este evento" });
+    }
+
+    const actualizada = await prisma.confirmacion.update({
+      where: { id: req.params.confirmacionId },
+      data: { nombreInvitado: nombreInvitado.trim() },
+    });
+
+    return res.json(actualizada);
+  },
+);
+
 // PATCH /api/eventos/:id — actualizar evento. Uso principal: cerrar el
 // partido (estado: "cerrado"), pero también deja corregir fecha/cancha.
 eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
