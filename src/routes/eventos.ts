@@ -61,7 +61,7 @@ eventosRouter.post("/", async (req, res) => {
       throw err;
     }
   }
-  return res.status(500).json({ error: "No se pudo generar un slug único, reintentá" });
+  return res.status(500).json({ error: "No se pudo generar un slug único, reintenta" });
 });
 
 // POST /api/eventos/:id/qr — subir QR (§04). El backend no maneja el
