@@ -16,9 +16,10 @@ function aVistaPublica(evento: {
   ubicacionUrl: string | null;
   estado: string;
   creadoEn: Date;
+  titulo: string | null;
 }) {
-  const { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn } = evento;
-  return { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn };
+  const { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn, titulo } = evento;
+  return { id, slug, fecha, nombreCancha, qrUrl, horaFin, ubicacionUrl, estado, creadoEn, titulo };
 }
 
 // Teléfono boliviano: empieza con 6 o 7 (celulares), 8 dígitos en total.

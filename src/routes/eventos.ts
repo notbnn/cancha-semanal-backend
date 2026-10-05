@@ -10,7 +10,7 @@ export const eventosRouter = Router();
 // puede crear un evento; lo que protege el evento después es el
 // adminToken que se devuelve acá UNA sola vez.
 eventosRouter.post("/", async (req, res) => {
-    const { fecha, nombreCancha, horaFin, ubicacionUrl } = req.body ?? {};
+    const { fecha, nombreCancha, horaFin, ubicacionUrl, titulo } = req.body ?? {};
 
   if (!fecha || Number.isNaN(new Date(fecha).getTime())) {
     return res
@@ -28,6 +28,9 @@ eventosRouter.post("/", async (req, res) => {
   if (ubicacionUrl !== undefined && typeof ubicacionUrl !== "string") {
     return res.status(400).json({ error: "ubicacionUrl tiene que ser texto" });
   }
+  if (titulo !== undefined && typeof titulo !== "string") {
+    return res.status(400).json({ error: "titulo tiene que ser texto" });
+  }
 
   const adminToken = generarAdminToken();
 
@@ -44,6 +47,7 @@ eventosRouter.post("/", async (req, res) => {
           nombreCancha,
           horaFin,
           ubicacionUrl,
+          titulo,
           adminToken,
         },
       });
@@ -131,7 +135,7 @@ eventosRouter.patch(
 // PATCH /api/eventos/:id — actualizar evento. Uso principal: cerrar el
 // partido (estado: "cerrado"), pero también deja corregir fecha/cancha.
 eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
-  const { estado, nombreCancha, fecha, ubicacionUrl } = req.body ?? {};
+  const { estado, nombreCancha, fecha, ubicacionUrl, titulo } = req.body ?? {};
   const data: Prisma.EventoUpdateInput = {};
 
   if (estado !== undefined) {
@@ -157,6 +161,12 @@ eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
       return res.status(400).json({ error: "ubicacionUrl tiene que ser texto" });
     }
     data.ubicacionUrl = ubicacionUrl;
+  }
+  if (titulo !== undefined) {
+    if (typeof titulo !== "string") {
+      return res.status(400).json({ error: "titulo tiene que ser texto" });
+    }
+    data.titulo = titulo;
   }
   if (Object.keys(data).length === 0) {
     return res.status(400).json({ error: "Mandá al menos un campo para actualizar" });

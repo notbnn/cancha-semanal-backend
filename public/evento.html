@@ -34,6 +34,18 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
     h1 { font-size: 20px; margin: 0 0 4px; color: var(--texto); }
+    .aviso-cuota {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--rojo);
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid var(--rojo);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
     .subtitulo { color: var(--texto-suave); font-size: 14px; margin: 4px 0; }
     .etiqueta {
       font-size: 13px; font-weight: 600; color: var(--texto-suave);
@@ -106,6 +118,8 @@
       <p class="subtitulo" id="cancha"></p>
       <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
     </div>
+
+    <p class="aviso-cuota">⚠️ Importante: si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
 
     <div class="tabs">
       <button type="button" id="tab-confirmar" class="activo">Confirmar</button>
@@ -237,11 +251,11 @@
 
     const evento = await respuesta.json();
 
-    document.getElementById("titulo").textContent = "Partido semanal";
+    document.getElementById("titulo").textContent = evento.titulo || "Partido semanal";
 
     const fecha = new Date(evento.fecha);
-    const fechaTexto = fecha.toLocaleDateString("es-AR", { dateStyle: "full" });
-    const horaInicio = fecha.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false });
+    const fechaTexto = fecha.toLocaleDateString("es-BO", { dateStyle: "full" });
+    const horaInicio = fecha.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false });
     const rangoHora = evento.horaFin
       ? `de ${horaInicio} a ${formatearHora(evento.horaFin)}`
       : `a las ${horaInicio}`;

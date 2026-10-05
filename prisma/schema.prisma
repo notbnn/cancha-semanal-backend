@@ -17,6 +17,9 @@ model Evento {
   slug          String   @unique
   fecha         DateTime
   nombreCancha  String?  @map("nombre_cancha")
+  // Nombre que el organizador le pone al partido (ej. "Bajo Llojeta").
+  // Si no lo mandan, la pagina publica usa "Partido semanal" como antes.
+  titulo        String?  @map("titulo")
   // Nullable a propósito: se completa recién en POST /api/eventos/:id/qr,
   // después de crear el evento (§04) — no existe todavía al crearlo.
   qrUrl         String?  @map("qr_url")
