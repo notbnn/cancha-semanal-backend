@@ -172,7 +172,7 @@
     </div>
 
     <div id="panel-lista" class="tarjeta" hidden>
-      <div class="etiqueta">Quiénes ya confirmaron</div>
+      <div class="etiqueta" id="etiqueta-lista">Quiénes ya confirmaron</div>
       <ul id="lista-confirmados" class="lista-confirmados"></ul>
       <p id="lista-vacia" class="subtitulo" hidden>Todavía no hay nadie confirmado.</p>
     </div>
@@ -219,6 +219,8 @@
     if (!respuesta.ok) return;
 
     const confirmaciones = await respuesta.json();
+    document.getElementById("etiqueta-lista").textContent =
+      `Quiénes ya confirmaron (${confirmaciones.length})`;
     lista.innerHTML = "";
 
     if (confirmaciones.length === 0) {
@@ -229,7 +231,7 @@
 
     for (const c of confirmaciones) {
       const li = document.createElement("li");
-      li.textContent = c.nombreInvitado;
+      li.textContent = (c.pagado ? "✅ " : "❌ ") + c.nombreInvitado;
       lista.appendChild(li);
     }
   }

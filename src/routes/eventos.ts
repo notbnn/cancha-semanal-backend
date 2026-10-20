@@ -132,6 +132,37 @@ eventosRouter.patch(
   },
 );
 
+// PATCH /api/eventos/:id/confirmaciones/:confirmacionId/pago — el
+// organizador marca o desmarca el pago de una confirmacion puntual desde
+// la app (toggle del check en la pantalla en vivo). Ruta separada de la
+// de arriba porque la dispara una accion distinta.
+eventosRouter.patch(
+  "/:id/confirmaciones/:confirmacionId/pago",
+  requireAdminToken,
+  async (req, res) => {
+    const { pagado } = req.body ?? {};
+
+    if (typeof pagado !== "boolean") {
+      return res.status(400).json({ error: "pagado es obligatorio y tiene que ser true o false" });
+    }
+
+    const confirmacion = await prisma.confirmacion.findUnique({
+      where: { id: req.params.confirmacionId },
+    });
+
+    if (!confirmacion || confirmacion.eventoId !== res.locals.evento.id) {
+      return res.status(404).json({ error: "Confirmacion no encontrada para este evento" });
+    }
+
+    const actualizada = await prisma.confirmacion.update({
+      where: { id: req.params.confirmacionId },
+      data: { pagado },
+    });
+
+    return res.json(actualizada);
+  },
+);
+
 // PATCH /api/eventos/:id — actualizar evento. Uso principal: cerrar el
 // partido (estado: "cerrado"), pero también deja corregir fecha/cancha.
 eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {

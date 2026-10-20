@@ -55,7 +55,7 @@ publicEventosRouter.get("/:slug/confirmaciones", async (req, res) => {
   const confirmaciones = await prisma.confirmacion.findMany({
     where: { eventoId: evento.id },
     orderBy: { creadoEn: "asc" },
-    select: { nombreInvitado: true, creadoEn: true },
+    select: { nombreInvitado: true, creadoEn: true, pagado: true },
   });
 
   return res.json(confirmaciones);

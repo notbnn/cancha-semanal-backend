@@ -54,6 +54,10 @@ model Confirmacion {
   // "qr" o "efectivo". Nullable por las confirmaciones viejas de antes de
   // este campo — las nuevas siempre lo van a tener, validado en el POST.
   metodoPago     String?  @map("metodo_pago")
+  // El organizador lo marca desde la app (ver AsistenciaCobro.estado en
+  // SQLite) — recien acá se empieza a reflejar ese dato en el backend,
+  // solo el booleano, para que el link publico pueda mostrar tick/cruz.
+  pagado         Boolean  @default(false)
   ipOrigen       String?  @map("ip_origen")
   creadoEn       DateTime @default(now()) @map("creado_en")
 
