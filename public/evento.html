@@ -97,6 +97,19 @@
       font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 14px;
       display: inline-flex; align-items: center; gap: 4px;
     }
+    .boton-chip {
+      display: inline-block;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--borde);
+      background: var(--fondo);
+      color: var(--texto);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .boton-chip:active { border-color: var(--verde); color: var(--verde); }
     #mensaje, #mensaje-telefono { text-align: center; font-weight: 600; margin-top: 12px; }
     #mensaje-telefono { font-size: 13px; color: var(--texto-suave); font-weight: 500; }
     #ubicacion-link {
@@ -167,13 +180,13 @@
 
         <div id="bloque-nombre-conocido" hidden>
           <p id="mensaje-bienvenida-conocido" style="margin-top:0; font-weight:600;"></p>
-          <button type="button" id="btn-cambiar-nombre" class="boton-volver" style="margin-bottom:16px">Anotarme con otro nombre</button>
+          <button type="button" id="btn-cambiar-nombre" class="boton-chip">Anotarme con otro nombre</button>
         </div>
 
         <div id="bloque-nombre" hidden>
           <p id="mensaje-nombre"></p>
           <label for="nombreInvitado">Tu nombre</label>
-          <input type="text" id="nombreInvitado" placeholder="Nombre y apellido" />
+          <input type="text" id="nombreInvitado" placeholder="Ej: Juan" />
         </div>
 
         <div class="etiqueta">¿Cómo vas a pagar?</div>
