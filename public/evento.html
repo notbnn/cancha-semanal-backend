@@ -136,7 +136,7 @@
       <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
     </div>
 
-    <p class="aviso-cuota"><strong>Importante:</strong> si te anotás y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
+    <p class="aviso-cuota"><strong>Importante:</strong> si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
 
     <!-- Vista principal: detalles del partido + flujo de confirmación -->
     <div id="vista-principal">
@@ -166,11 +166,8 @@
         <button type="button" id="btn-atras" class="boton-volver">‹ Atrás</button>
 
         <div id="bloque-nombre-conocido" hidden>
-          <p style="margin-top:0">¿Seguís siendo <strong id="nombre-conocido"></strong>?</p>
-          <div class="opciones-pago" style="margin-bottom:16px">
-            <button type="button" id="btn-si-soy-yo">Sí, soy yo</button>
-            <button type="button" id="btn-no-soy-yo">No, soy otra persona</button>
-          </div>
+          <p id="mensaje-bienvenida-conocido" style="margin-top:0; font-weight:600;"></p>
+          <button type="button" id="btn-cambiar-nombre" class="boton-volver" style="margin-bottom:16px">Anotarme con otro nombre</button>
         </div>
 
         <div id="bloque-nombre" hidden>
@@ -288,13 +285,14 @@
 
       if (datos.nombreInvitado) {
         nombreResuelto = datos.nombreInvitado;
-        document.getElementById("nombre-conocido").textContent = datos.nombreInvitado;
+        document.getElementById("mensaje-bienvenida-conocido").textContent =
+          `¡Bienvenido de nuevo, ${datos.nombreInvitado}!`;
         document.getElementById("bloque-nombre-conocido").hidden = false;
         document.getElementById("bloque-nombre").hidden = true;
       } else {
         nombreResuelto = null;
         document.getElementById("bloque-nombre-conocido").hidden = true;
-        document.getElementById("mensaje-nombre").textContent = "¡Bienvenido a Cancha Cash! 👋 Contanos tu nombre:";
+        document.getElementById("mensaje-nombre").textContent = "¡Bienvenido a Cancha Cash! 👋 Cuéntanos tu nombre:";
         document.getElementById("bloque-nombre").hidden = false;
       }
     } catch (e) {
@@ -302,11 +300,7 @@
     }
   });
 
-  document.getElementById("btn-si-soy-yo").addEventListener("click", () => {
-    document.getElementById("bloque-nombre-conocido").hidden = true;
-  });
-
-  document.getElementById("btn-no-soy-yo").addEventListener("click", () => {
+  document.getElementById("btn-cambiar-nombre").addEventListener("click", () => {
     nombreResuelto = null;
     document.getElementById("bloque-nombre-conocido").hidden = true;
     document.getElementById("mensaje-nombre").textContent = "";
