@@ -40,6 +40,30 @@ publicEventosRouter.get("/:slug", async (req, res) => {
   return res.json(aVistaPublica(evento));
 });
 
+// GET /api/public/eventos/telefono/:telefono — busca si este número ya
+// confirmó antes (en cualquier partido), para sugerirle el mismo nombre en
+// vez de pedírselo de nuevo cada semana. No está scoped a un evento en
+// particular: por ahora es una sola base de invitados para todo Cancha
+// Cash (todavía no hay organizadores separados — ver §objetivo de cuentas
+// de usuario en la monografía).
+publicEventosRouter.get("/telefono/:telefono", async (req, res) => {
+  const telefono = req.params.telefono.trim();
+
+  if (!TELEFONO_BOLIVIA.test(telefono)) {
+    return res.status(400).json({
+      error: "telefono inválido: tiene que empezar con 6 o 7 y tener 8 dígitos",
+    });
+  }
+
+  const ultima = await prisma.confirmacion.findFirst({
+    where: { telefono },
+    orderBy: { creadoEn: "desc" },
+    select: { nombreInvitado: true },
+  });
+
+  return res.json({ nombreInvitado: ultima?.nombreInvitado ?? null });
+});
+
 // GET /api/public/eventos/:slug/confirmaciones — lista pública de quién ya
 // confirmó. Solo nombres (sin teléfono ni IP): eso es privado, solo lo ve
 // el organizador desde la app vía el endpoint de admin en eventos.ts.

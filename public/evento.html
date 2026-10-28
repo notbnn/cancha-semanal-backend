@@ -15,6 +15,7 @@
       --tarjeta: #1e293b;
       --borde: #334155;
       --rojo: #f87171;
+      --advertencia: #eab308;
     }
     * { box-sizing: border-box; }
     body {
@@ -35,17 +36,18 @@
     }
     h1 { font-size: 20px; margin: 0 0 4px; color: var(--texto); }
     .aviso-cuota {
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.3;
-      color: var(--rojo);
-      background: rgba(248, 113, 113, 0.12);
-      border: 1px solid var(--rojo);
-      border-radius: 12px;
-      padding: 14px;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--texto-suave);
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
       margin-bottom: 16px;
-      text-align: center;
+      text-align: left;
     }
+    .aviso-cuota strong { color: var(--advertencia); font-weight: 600; }
     .subtitulo { color: var(--texto-suave); font-size: 14px; margin: 4px 0; }
     .etiqueta {
       font-size: 13px; font-weight: 600; color: var(--texto-suave);
@@ -80,12 +82,23 @@
     .pista-telefono {
       font-size: 12px; color: var(--texto-suave); margin-top: -12px; margin-bottom: 16px;
     }
-    button[type="submit"] {
+    .boton-primario {
       width: 100%; padding: 14px; border-radius: 10px; border: none;
       background: var(--verde); color: #0f172a; font-size: 16px; font-weight: 700; cursor: pointer;
     }
-    button[type="submit"]:active { background: var(--verde-oscuro); }
-    #mensaje { text-align: center; font-weight: 600; margin-top: 12px; }
+    .boton-primario:active { background: var(--verde-oscuro); }
+    .boton-primario:disabled { opacity: 0.5; cursor: default; }
+    .boton-secundario {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--borde);
+      background: transparent; color: var(--texto); font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    .boton-volver {
+      background: none; border: none; color: var(--texto-suave); font-size: 14px;
+      font-weight: 600; cursor: pointer; padding: 0; margin-bottom: 14px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    #mensaje, #mensaje-telefono { text-align: center; font-weight: 600; margin-top: 12px; }
+    #mensaje-telefono { font-size: 13px; color: var(--texto-suave); font-weight: 500; }
     #ubicacion-link {
       display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
       color: var(--verde); font-size: 14px; font-weight: 600; text-decoration: none;
@@ -94,13 +107,8 @@
       font-size: 12px; color: var(--texto-suave); margin-top: 14px;
       line-height: 1.5; text-align: center;
     }
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tabs button {
-      flex: 1; padding: 12px; border-radius: 10px; border: 2px solid var(--borde);
-      background: var(--tarjeta); font-size: 14px; font-weight: 600; color: var(--texto-suave); cursor: pointer;
-    }
-    .tabs button.activo {
-      border-color: var(--verde); background: var(--verde-suave); color: var(--verde);
+    #mensaje-nombre {
+      font-size: 14px; color: var(--texto-suave); margin: 0 0 12px;
     }
     .lista-confirmados { list-style: none; margin: 0; padding: 0; }
     .lista-confirmados li {
@@ -128,15 +136,49 @@
       <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
     </div>
 
-    <p class="aviso-cuota">⚠️ Importante: si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
+    <p class="aviso-cuota"><strong>Importante:</strong> si te anotás y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
 
-    <div class="tabs">
-      <button type="button" id="tab-confirmar" class="activo">Confirmar</button>
-      <button type="button" id="tab-lista">Ver lista</button>
-    </div>
+    <!-- Vista principal: detalles del partido + flujo de confirmación -->
+    <div id="vista-principal">
+      <button type="button" id="btn-ver-lista" class="boton-secundario">Ver lista de confirmados</button>
 
-    <div id="panel-confirmar">
-      <div class="tarjeta">
+      <p id="mensaje-cerrado" class="subtitulo" hidden style="text-align:center; margin-top: 16px;">
+        Este partido ya está cerrado — no puedes anotarte.
+      </p>
+
+      <!-- Paso 1: teléfono -->
+      <div class="tarjeta" id="paso-telefono" style="margin-top:16px">
+        <label for="telefono">Tu número de teléfono</label>
+        <input
+          type="tel"
+          id="telefono"
+          inputmode="numeric"
+          maxlength="8"
+          placeholder="71234567"
+        />
+        <p class="pista-telefono">Empieza con 6 o 7, 8 dígitos en total.</p>
+        <button type="button" id="btn-siguiente-telefono" class="boton-primario">Siguiente</button>
+        <p id="mensaje-telefono"></p>
+      </div>
+
+      <!-- Paso 2: nombre + metodo de pago + confirmar -->
+      <div class="tarjeta" id="paso-detalles" hidden style="margin-top:16px">
+        <button type="button" id="btn-atras" class="boton-volver">‹ Atrás</button>
+
+        <div id="bloque-nombre-conocido" hidden>
+          <p style="margin-top:0">¿Seguís siendo <strong id="nombre-conocido"></strong>?</p>
+          <div class="opciones-pago" style="margin-bottom:16px">
+            <button type="button" id="btn-si-soy-yo">Sí, soy yo</button>
+            <button type="button" id="btn-no-soy-yo">No, soy otra persona</button>
+          </div>
+        </div>
+
+        <div id="bloque-nombre" hidden>
+          <p id="mensaje-nombre"></p>
+          <label for="nombreInvitado">Tu nombre</label>
+          <input type="text" id="nombreInvitado" placeholder="Nombre y apellido" />
+        </div>
+
         <div class="etiqueta">¿Cómo vas a pagar?</div>
         <div class="opciones-pago">
           <button type="button" id="btn-qr">QR</button>
@@ -150,27 +192,8 @@
         <p id="sin-qr-mensaje" hidden>El organizador todavía no subió el QR — paga en efectivo o consúltale directamente.</p>
         <p id="efectivo-mensaje" hidden>Vas a pagar en efectivo, directo en la cancha.</p>
         <p id="pago-requerido" hidden>Elige un método de pago para poder confirmar.</p>
-      </div>
 
-      <div class="tarjeta">
-        <form id="form-confirmar">
-          <label for="nombreInvitado">Tu nombre</label>
-          <input type="text" id="nombreInvitado" required />
-
-          <label for="telefono">Tu teléfono</label>
-          <input
-            type="tel"
-            id="telefono"
-            required
-            pattern="[67][0-9]{7}"
-            inputmode="numeric"
-            maxlength="8"
-            placeholder="71234567"
-          />
-          <p class="pista-telefono">Empieza con 6 o 7, 8 dígitos en total.</p>
-
-          <button type="submit">Confirmar que voy</button>
-        </form>
+        <button type="button" id="btn-confirmar" class="boton-primario" style="margin-top:16px">Confirmar que voy</button>
         <p id="mensaje"></p>
         <p class="nota-identidad">
           Tu teléfono es lo que te identifica en la lista — usa siempre el mismo,
@@ -180,7 +203,9 @@
       </div>
     </div>
 
-    <div id="panel-lista" class="tarjeta" hidden>
+    <!-- Vista lista -->
+    <div id="vista-lista" class="tarjeta" hidden>
+      <button type="button" id="btn-volver" class="boton-volver">‹ Volver</button>
       <div class="etiqueta" id="etiqueta-lista">Quiénes ya confirmaron</div>
       <div class="cabecera-lista" id="cabecera-lista" hidden>
         <span class="col-nombre">Jugador</span>
@@ -193,8 +218,14 @@
 
   <script>
   const slug = window.location.pathname.split("/").pop();
+  const TELEFONO_BOLIVIA = /^[67]\d{7}$/;
   let tieneQr = false;
   let metodoPago = null;
+  let telefonoActual = null;
+  // Si ya habia confirmado antes, guardamos el nombre que trajo la
+  // busqueda por telefono acá — si el usuario dice "no soy yo" o es
+  // nuevo, se vuelve null y en su lugar se usa el input de nombre.
+  let nombreResuelto = null;
 
   function elegirPago(metodo) {
     metodoPago = metodo;
@@ -211,18 +242,76 @@
   document.getElementById("btn-qr").addEventListener("click", () => elegirPago("qr"));
   document.getElementById("btn-efectivo").addEventListener("click", () => elegirPago("efectivo"));
 
-  function mostrarTab(tab) {
-    const esConfirmar = tab === "confirmar";
-    document.getElementById("tab-confirmar").classList.toggle("activo", esConfirmar);
-    document.getElementById("tab-lista").classList.toggle("activo", !esConfirmar);
-    document.getElementById("panel-confirmar").hidden = !esConfirmar;
-    document.getElementById("panel-lista").hidden = esConfirmar;
-
-    if (!esConfirmar) cargarLista();
+  function mostrarVistaLista() {
+    document.getElementById("vista-principal").hidden = true;
+    document.getElementById("vista-lista").hidden = false;
+    cargarLista();
   }
 
-  document.getElementById("tab-confirmar").addEventListener("click", () => mostrarTab("confirmar"));
-  document.getElementById("tab-lista").addEventListener("click", () => mostrarTab("lista"));
+  function mostrarVistaPrincipal() {
+    document.getElementById("vista-lista").hidden = true;
+    document.getElementById("vista-principal").hidden = false;
+  }
+
+  document.getElementById("btn-ver-lista").addEventListener("click", mostrarVistaLista);
+  document.getElementById("btn-volver").addEventListener("click", mostrarVistaPrincipal);
+
+  document.getElementById("btn-atras").addEventListener("click", () => {
+    document.getElementById("paso-detalles").hidden = true;
+    document.getElementById("paso-telefono").hidden = false;
+  });
+
+  document.getElementById("btn-siguiente-telefono").addEventListener("click", async () => {
+    const input = document.getElementById("telefono");
+    const msg = document.getElementById("mensaje-telefono");
+    const valor = input.value.trim();
+
+    if (!TELEFONO_BOLIVIA.test(valor)) {
+      msg.textContent = "Revisa el número: empieza con 6 o 7, 8 dígitos.";
+      return;
+    }
+
+    telefonoActual = valor;
+    msg.textContent = "Buscando...";
+
+    try {
+      const respuesta = await fetch(`/api/public/eventos/telefono/${telefonoActual}`);
+      if (!respuesta.ok) {
+        msg.textContent = "No se pudo verificar el número, intenta de nuevo.";
+        return;
+      }
+      const datos = await respuesta.json();
+      msg.textContent = "";
+
+      document.getElementById("paso-telefono").hidden = true;
+      document.getElementById("paso-detalles").hidden = false;
+
+      if (datos.nombreInvitado) {
+        nombreResuelto = datos.nombreInvitado;
+        document.getElementById("nombre-conocido").textContent = datos.nombreInvitado;
+        document.getElementById("bloque-nombre-conocido").hidden = false;
+        document.getElementById("bloque-nombre").hidden = true;
+      } else {
+        nombreResuelto = null;
+        document.getElementById("bloque-nombre-conocido").hidden = true;
+        document.getElementById("mensaje-nombre").textContent = "¡Bienvenido a Cancha Cash! 👋 Contanos tu nombre:";
+        document.getElementById("bloque-nombre").hidden = false;
+      }
+    } catch (e) {
+      msg.textContent = "No se pudo verificar el número, intenta de nuevo.";
+    }
+  });
+
+  document.getElementById("btn-si-soy-yo").addEventListener("click", () => {
+    document.getElementById("bloque-nombre-conocido").hidden = true;
+  });
+
+  document.getElementById("btn-no-soy-yo").addEventListener("click", () => {
+    nombreResuelto = null;
+    document.getElementById("bloque-nombre-conocido").hidden = true;
+    document.getElementById("mensaje-nombre").textContent = "";
+    document.getElementById("bloque-nombre").hidden = false;
+  });
 
   async function cargarLista() {
     const lista = document.getElementById("lista-confirmados");
@@ -273,7 +362,7 @@
 
     if (!respuesta.ok) {
       document.getElementById("titulo").textContent = "Evento no encontrado";
-      document.getElementById("form-confirmar").hidden = true;
+      document.getElementById("paso-telefono").hidden = true;
       return;
     }
 
@@ -305,15 +394,16 @@
     }
 
     if (evento.estado === "cerrado") {
-      document.getElementById("mensaje").textContent = "Este partido ya está cerrado — no puedes anotarte.";
-      document.getElementById("form-confirmar").hidden = true;
+      document.getElementById("mensaje-cerrado").hidden = false;
+      document.getElementById("paso-telefono").hidden = true;
+      document.getElementById("paso-detalles").hidden = true;
     }
   }
 
   cargarEvento();
 
-  document.getElementById("form-confirmar").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document.getElementById("btn-confirmar").addEventListener("click", async () => {
+    const mensaje = document.getElementById("mensaje");
 
     if (!metodoPago) {
       document.getElementById("pago-requerido").hidden = false;
@@ -321,24 +411,28 @@
       return;
     }
 
-    const nombreInvitado = document.getElementById("nombreInvitado").value;
-    const telefono = document.getElementById("telefono").value;
-    const mensaje = document.getElementById("mensaje");
+    const nombreInvitado = nombreResuelto ?? document.getElementById("nombreInvitado").value.trim();
+    if (!nombreInvitado) {
+      mensaje.textContent = "Escribe tu nombre para poder confirmar.";
+      return;
+    }
 
     const respuesta = await fetch(`/api/public/eventos/${slug}/confirmar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombreInvitado, telefono, metodoPago }),
+        body: JSON.stringify({ nombreInvitado, telefono: telefonoActual, metodoPago }),
     });
 
     if (respuesta.ok) {
         mensaje.textContent = "¡Confirmado! Nos vemos en la cancha.";
-        document.getElementById("form-confirmar").hidden = true;
+        document.querySelectorAll("#paso-detalles button, #paso-detalles input").forEach((el) => {
+          el.disabled = true;
+        });
     } else {
         const error = await respuesta.json();
         mensaje.textContent = "Error: " + error.error;
     }
-    });
+  });
 </script>
 </body>
 </html>
