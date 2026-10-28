@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cancha Semanal</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>" />
   <style>
     :root {
       --verde: #22c55e;
@@ -137,6 +138,11 @@
     }
     .col-nombre { flex: 1; }
     .col-pagada { flex: 0 0 auto; text-align: center; min-width: 64px; }
+    .pie-pagina {
+      text-align: center; margin-top: 24px; padding-top: 16px;
+      border-top: 1px solid var(--borde); color: var(--texto-suave); font-size: 12px;
+    }
+    .pie-pagina strong { color: var(--texto); }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -224,6 +230,8 @@
       <ul id="lista-confirmados" class="lista-confirmados"></ul>
       <p id="lista-vacia" class="subtitulo" hidden>Todavía no hay nadie confirmado.</p>
     </div>
+
+    <footer class="pie-pagina">🐱 Desarrollado por <strong>notbnn</strong></footer>
   </div>
 
   <script>
