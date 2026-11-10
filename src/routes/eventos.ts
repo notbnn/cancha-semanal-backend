@@ -163,6 +163,31 @@ eventosRouter.patch(
   },
 );
 
+// DELETE /api/eventos/:id/confirmaciones/:confirmacionId — el organizador
+// elimina a un jugador desde la app. Si esa asistencia vino de una
+// confirmacion de la web, hay que borrarla tambien aca o la pagina publica
+// sigue mostrando a esa persona en la lista (la pagina lee directo de esta
+// tabla, no sabe nada de lo que pasa en el celular).
+eventosRouter.delete(
+  "/:id/confirmaciones/:confirmacionId",
+  requireAdminToken,
+  async (req, res) => {
+    const confirmacion = await prisma.confirmacion.findUnique({
+      where: { id: req.params.confirmacionId },
+    });
+
+    if (!confirmacion || confirmacion.eventoId !== res.locals.evento.id) {
+      return res.status(404).json({ error: "Confirmacion no encontrada para este evento" });
+    }
+
+    await prisma.confirmacion.delete({
+      where: { id: req.params.confirmacionId },
+    });
+
+    return res.status(204).send();
+  },
+);
+
 // PATCH /api/eventos/:id — actualizar evento. Uso principal: cerrar el
 // partido (estado: "cerrado"), pero también deja corregir fecha/cancha.
 eventosRouter.patch("/:id", requireAdminToken, async (req, res) => {
