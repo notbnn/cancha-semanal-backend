@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cancha Semanal</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐈‍⬛</text></svg>" />
   <style>
     :root {
       --verde: #22c55e;
@@ -144,18 +144,43 @@
     }
     .pie-pagina strong { color: var(--texto); }
     [hidden] { display: none !important; }
+    .pantalla-confirmado {
+      min-height: 55vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 16px;
+    }
+    .pantalla-confirmado .icono-confirmado { font-size: 56px; margin-bottom: 16px; }
+    .pantalla-confirmado h2 {
+      font-size: 28px;
+      line-height: 1.3;
+      color: var(--verde);
+      margin: 0 0 32px;
+    }
+    .pantalla-confirmado .botones {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+    }
   </style>
 </head>
 <body>
   <div class="contenedor">
-    <div class="tarjeta">
-      <h1 id="titulo">Cargando evento...</h1>
-      <p class="subtitulo" id="fecha"></p>
-      <p class="subtitulo" id="cancha"></p>
-      <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
-    </div>
+    <div id="info-evento">
+      <div class="tarjeta">
+        <h1 id="titulo">Cargando evento...</h1>
+        <p class="subtitulo" id="fecha"></p>
+        <p class="subtitulo" id="cancha"></p>
+        <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
+      </div>
 
-    <p class="aviso-cuota"><strong>Importante:</strong> si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
+      <p class="aviso-cuota"><strong>Importante:</strong> si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
+    </div>
 
     <!-- Vista principal: detalles del partido + flujo de confirmación -->
     <div id="vista-principal">
@@ -231,7 +256,18 @@
       <p id="lista-vacia" class="subtitulo" hidden>Todavía no hay nadie confirmado.</p>
     </div>
 
-    <footer class="pie-pagina">🐱 Desarrollado por <strong>notbnn</strong></footer>
+    <!-- Vista confirmado: pantalla propia después de confirmar, sin nada
+         más alrededor para que no se pierda el mensaje. -->
+    <div id="vista-confirmado" class="pantalla-confirmado" hidden>
+      <div class="icono-confirmado">✅</div>
+      <h2>¡Confirmado!<br />Nos vemos en la cancha.</h2>
+      <div class="botones">
+        <button type="button" id="btn-confirmado-volver" class="boton-primario">Volver a registro</button>
+        <button type="button" id="btn-confirmado-ver-lista" class="boton-secundario">Ver lista de confirmados</button>
+      </div>
+    </div>
+
+    <footer class="pie-pagina">🐈‍⬛ Desarrollado por <strong>notbnn</strong></footer>
   </div>
 
   <script>
@@ -260,19 +296,72 @@
   document.getElementById("btn-qr").addEventListener("click", () => elegirPago("qr"));
   document.getElementById("btn-efectivo").addEventListener("click", () => elegirPago("efectivo"));
 
+  // Controla cuál de las tres pantallas se ve (nunca más de una a la
+  // vez) — "principal" (registro), "lista" o "confirmado". La tarjeta
+  // con los datos del partido se esconde en "confirmado" a propósito,
+  // para que ese mensaje no compita con nada más en la pantalla.
+  function mostrarPantalla(id) {
+    document.getElementById("info-evento").hidden = id === "confirmado";
+    document.getElementById("vista-principal").hidden = id !== "principal";
+    document.getElementById("vista-lista").hidden = id !== "lista";
+    document.getElementById("vista-confirmado").hidden = id !== "confirmado";
+  }
+
+  // A qué pantalla volver cuando tocan "‹ Volver" desde la lista —
+  // puede haber entrado ahí desde el registro o desde la de confirmado.
+  let origenLista = "principal";
+
   function mostrarVistaLista() {
-    document.getElementById("vista-principal").hidden = true;
-    document.getElementById("vista-lista").hidden = false;
+    origenLista = document.getElementById("vista-confirmado").hidden
+      ? "principal"
+      : "confirmado";
+    mostrarPantalla("lista");
     cargarLista();
   }
 
   function mostrarVistaPrincipal() {
-    document.getElementById("vista-lista").hidden = true;
-    document.getElementById("vista-principal").hidden = false;
+    mostrarPantalla(origenLista);
+  }
+
+  function mostrarVistaConfirmado() {
+    mostrarPantalla("confirmado");
+  }
+
+  // "Volver a registro" desde la pantalla de confirmado — limpia todo
+  // para que otra persona pueda anotarse desde el mismo link, arrancando
+  // de nuevo en el paso del teléfono.
+  function reiniciarRegistro() {
+    metodoPago = null;
+    telefonoActual = null;
+    nombreResuelto = null;
+
+    document.getElementById("telefono").value = "";
+    document.getElementById("mensaje-telefono").textContent = "";
+    document.getElementById("nombreInvitado").value = "";
+    document.getElementById("mensaje-nombre").textContent = "";
+    document.getElementById("mensaje").textContent = "";
+    document.getElementById("pago-requerido").hidden = true;
+
+    document.getElementById("btn-qr").classList.remove("activo");
+    document.getElementById("btn-efectivo").classList.remove("activo");
+    document.getElementById("qr-contenedor").hidden = true;
+    document.getElementById("sin-qr-mensaje").hidden = true;
+    document.getElementById("efectivo-mensaje").hidden = true;
+
+    document.querySelectorAll("#paso-detalles button, #paso-detalles input").forEach((el) => {
+      el.disabled = false;
+    });
+
+    document.getElementById("paso-detalles").hidden = true;
+    document.getElementById("paso-telefono").hidden = false;
+
+    mostrarPantalla("principal");
   }
 
   document.getElementById("btn-ver-lista").addEventListener("click", mostrarVistaLista);
   document.getElementById("btn-volver").addEventListener("click", mostrarVistaPrincipal);
+  document.getElementById("btn-confirmado-volver").addEventListener("click", reiniciarRegistro);
+  document.getElementById("btn-confirmado-ver-lista").addEventListener("click", mostrarVistaLista);
 
   document.getElementById("btn-atras").addEventListener("click", () => {
     document.getElementById("paso-detalles").hidden = true;
@@ -439,10 +528,7 @@
     });
 
     if (respuesta.ok) {
-        mensaje.textContent = "¡Confirmado! Nos vemos en la cancha.";
-        document.querySelectorAll("#paso-detalles button, #paso-detalles input").forEach((el) => {
-          el.disabled = true;
-        });
+        mostrarVistaConfirmado();
     } else {
         const error = await respuesta.json();
         mensaje.textContent = "Error: " + error.error;
