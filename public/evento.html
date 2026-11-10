@@ -73,6 +73,9 @@
     #pago-requerido {
       font-size: 13px; color: var(--rojo); margin-top: 12px; text-align: center;
     }
+    #mensaje.mensaje-error {
+      color: var(--rojo); font-size: 15px;
+    }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--texto); }
     input {
       width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--borde);
@@ -236,6 +239,9 @@
 
         <button type="button" id="btn-confirmar" class="boton-primario" style="margin-top:16px">Confirmar que voy</button>
         <p id="mensaje"></p>
+        <button type="button" id="btn-reintentar-numero" class="boton-secundario" hidden style="margin-top:8px">
+          Volver a intentar con otro número
+        </button>
         <p class="nota-identidad">
           Tu teléfono es lo que te identifica en la lista — usa siempre el mismo,
           cada semana. Aun así, escribe bien tu nombre y elige cómo vas a pagar:
@@ -298,10 +304,9 @@
 
   // Controla cuál de las tres pantallas se ve (nunca más de una a la
   // vez) — "principal" (registro), "lista" o "confirmado". La tarjeta
-  // con los datos del partido se esconde en "confirmado" a propósito,
-  // para que ese mensaje no compita con nada más en la pantalla.
+  // con los datos del partido queda siempre visible en las tres, para
+  // que quien no prestó atención pueda revisarla.
   function mostrarPantalla(id) {
-    document.getElementById("info-evento").hidden = id === "confirmado";
     document.getElementById("vista-principal").hidden = id !== "principal";
     document.getElementById("vista-lista").hidden = id !== "lista";
     document.getElementById("vista-confirmado").hidden = id !== "confirmado";
@@ -340,6 +345,8 @@
     document.getElementById("nombreInvitado").value = "";
     document.getElementById("mensaje-nombre").textContent = "";
     document.getElementById("mensaje").textContent = "";
+    document.getElementById("mensaje").classList.remove("mensaje-error");
+    document.getElementById("btn-reintentar-numero").hidden = true;
     document.getElementById("pago-requerido").hidden = true;
 
     document.getElementById("btn-qr").classList.remove("activo");
@@ -362,6 +369,7 @@
   document.getElementById("btn-volver").addEventListener("click", mostrarVistaPrincipal);
   document.getElementById("btn-confirmado-volver").addEventListener("click", reiniciarRegistro);
   document.getElementById("btn-confirmado-ver-lista").addEventListener("click", mostrarVistaLista);
+  document.getElementById("btn-reintentar-numero").addEventListener("click", reiniciarRegistro);
 
   document.getElementById("btn-atras").addEventListener("click", () => {
     document.getElementById("paso-detalles").hidden = true;
@@ -508,6 +516,8 @@
 
   document.getElementById("btn-confirmar").addEventListener("click", async () => {
     const mensaje = document.getElementById("mensaje");
+    mensaje.classList.remove("mensaje-error");
+    document.getElementById("btn-reintentar-numero").hidden = true;
 
     if (!metodoPago) {
       document.getElementById("pago-requerido").hidden = false;
@@ -531,7 +541,10 @@
         mostrarVistaConfirmado();
     } else {
         const error = await respuesta.json();
-        mensaje.textContent = "Error: " + error.error;
+        mensaje.textContent = "⚠️ " + error.error;
+        mensaje.classList.add("mensaje-error");
+        document.getElementById("btn-reintentar-numero").hidden = false;
+        mensaje.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   });
 </script>
