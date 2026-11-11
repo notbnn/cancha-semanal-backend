@@ -18,6 +18,10 @@ app.get("/health", async (_req, res) => {
   res.json({ ok: true });
 });
 app.get("/e/:slug", (_req, res) => {
+  // Sin esto, el celular (sobre todo el navegador interno de WhatsApp)
+  // puede quedarse con una copia vieja guardada de esta página y no
+  // pedirle al servidor la versión nueva, aunque ya la hayamos deployado.
+  res.set("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "..", "public", "evento.html"));
 });
 
