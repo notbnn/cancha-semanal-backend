@@ -13,6 +13,12 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 
+// Sirve los archivos sueltos de public/ (como confirmado.mp3) por HTTP
+// directo — sin esto, cualquier archivo ahí adentro que no sea
+// evento.html (que se manda a mano más abajo) le da 404 al navegador,
+// aunque exista en el disco del servidor.
+app.use(express.static(path.join(__dirname, "..", "public")));
+
 app.get("/health", async (_req, res) => {
   await prisma.$queryRaw`SELECT 1`;
   res.json({ ok: true });
