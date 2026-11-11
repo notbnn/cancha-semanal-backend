@@ -264,6 +264,7 @@
 
     <!-- Vista confirmado: pantalla propia después de confirmar, sin nada
          más alrededor para que no se pierda el mensaje. -->
+    <audio id="sonido-confirmado" src="confirmado.mp3" preload="auto"></audio>
     <div id="vista-confirmado" class="pantalla-confirmado" hidden>
       <div class="icono-confirmado">✅</div>
       <h2>¡Confirmado!<br />Nos vemos en la cancha.</h2>
@@ -333,36 +334,14 @@
     reproducirSonidoConfirmacion();
   }
 
-  // Sonidito placeholder para la pantalla de "¡Confirmado!" — una
-  // melodía cortita generada en el momento con el navegador (Web Audio
-  // API), no un archivo de audio. Así no hay ningún tema de derechos de
-  // autor de por medio y el sitio no depende de ningún archivo extra.
-  //
-  // Para cambiarlo por un sonido real tuyo más adelante: subí el archivo
-  // (ej. "confirmado.mp3") a esta misma carpeta public/, agregá
-  // `<audio id="sonido-confirmado" src="confirmado.mp3" preload="auto"></audio>`
-  // en el HTML, y reemplazá el contenido de esta función por:
-  // `document.getElementById("sonido-confirmado").play().catch(() => {});`
+  // Sonido real de la pantalla de "¡Confirmado!" — el archivo está en
+  // public/confirmado.mp3. El audio.play() real va acá; el "desbloqueo"
+  // (necesario en celular, ver comentario en btn-confirmar más abajo) ya
+  // se hizo antes, pegado al toque del botón.
   function reproducirSonidoConfirmacion() {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const notas = [523.25, 659.25, 783.99, 1046.5]; // Do5, Mi5, Sol5, Do6
-      notas.forEach((frecuencia, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = frecuencia;
-        const inicio = ctx.currentTime + i * 0.12;
-        gain.gain.setValueAtTime(0.2, inicio);
-        gain.gain.exponentialRampToValueAtTime(0.001, inicio + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(inicio);
-        osc.stop(inicio + 0.35);
-      });
-    } catch (_) {
-      // si el navegador bloquea audio sin interacción previa, no rompemos nada
-    }
+    const audio = document.getElementById("sonido-confirmado");
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
   }
 
   // "Volver a registro" desde la pantalla de confirmado — limpia todo
@@ -551,6 +530,16 @@
     const mensaje = document.getElementById("mensaje");
     mensaje.classList.remove("mensaje-error");
     document.getElementById("btn-reintentar-numero").hidden = true;
+
+    // "Desbloquea" el audio ACÁ, bien pegado al toque del botón — los
+    // celulares no dejan reproducir sonido si el play() llega después de
+    // esperar la respuesta del servidor (el "await fetch" de más abajo).
+    // Lo arrancamos y pausamos al toque para que el navegador registre
+    // que el audio ya tuvo luz verde del usuario; el play() real, más
+    // abajo en reproducirSonidoConfirmacion(), ya puede ir sin problema.
+    const audioConfirmado = document.getElementById("sonido-confirmado");
+    audioConfirmado.play().then(() => audioConfirmado.pause()).catch(() => {});
+    audioConfirmado.currentTime = 0;
 
     if (!metodoPago) {
       document.getElementById("pago-requerido").hidden = false;
