@@ -330,6 +330,39 @@
 
   function mostrarVistaConfirmado() {
     mostrarPantalla("confirmado");
+    reproducirSonidoConfirmacion();
+  }
+
+  // Sonidito placeholder para la pantalla de "¡Confirmado!" — una
+  // melodía cortita generada en el momento con el navegador (Web Audio
+  // API), no un archivo de audio. Así no hay ningún tema de derechos de
+  // autor de por medio y el sitio no depende de ningún archivo extra.
+  //
+  // Para cambiarlo por un sonido real tuyo más adelante: subí el archivo
+  // (ej. "confirmado.mp3") a esta misma carpeta public/, agregá
+  // `<audio id="sonido-confirmado" src="confirmado.mp3" preload="auto"></audio>`
+  // en el HTML, y reemplazá el contenido de esta función por:
+  // `document.getElementById("sonido-confirmado").play().catch(() => {});`
+  function reproducirSonidoConfirmacion() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notas = [523.25, 659.25, 783.99, 1046.5]; // Do5, Mi5, Sol5, Do6
+      notas.forEach((frecuencia, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = frecuencia;
+        const inicio = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0.2, inicio);
+        gain.gain.exponentialRampToValueAtTime(0.001, inicio + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(inicio);
+        osc.stop(inicio + 0.35);
+      });
+    } catch (_) {
+      // si el navegador bloquea audio sin interacción previa, no rompemos nada
+    }
   }
 
   // "Volver a registro" desde la pantalla de confirmado — limpia todo
