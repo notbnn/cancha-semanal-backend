@@ -50,6 +50,10 @@
     }
     .aviso-cuota strong { color: var(--advertencia); font-weight: 600; }
     .subtitulo { color: var(--texto-suave); font-size: 14px; margin: 4px 0; }
+    .fecha-destacada {
+      color: var(--texto); font-size: 19px; font-weight: 700; margin: 8px 0 2px;
+      display: flex; align-items: center; gap: 8px;
+    }
     .etiqueta {
       font-size: 13px; font-weight: 600; color: var(--texto-suave);
       text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 10px;
@@ -117,8 +121,10 @@
     #mensaje, #mensaje-telefono { text-align: center; font-weight: 600; margin-top: 12px; }
     #mensaje-telefono { font-size: 13px; color: var(--texto-suave); font-weight: 500; }
     #ubicacion-link {
-      display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
-      color: var(--verde); font-size: 14px; font-weight: 600; text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 14px; padding: 13px; width: 100%; box-sizing: border-box;
+      border-radius: 10px; border: 1px solid var(--verde); background: var(--verde-suave);
+      color: var(--verde); font-size: 16px; font-weight: 700; text-decoration: none;
     }
     .nota-identidad {
       font-size: 12px; color: var(--texto-suave); margin-top: 14px;
@@ -177,9 +183,9 @@
     <div id="info-evento">
       <div class="tarjeta">
         <h1 id="titulo">Cargando evento...</h1>
-        <p class="subtitulo" id="fecha"></p>
+        <p class="fecha-destacada" id="fecha"></p>
         <p class="subtitulo" id="cancha"></p>
-        <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Ver ubicación en Maps</a>
+        <a id="ubicacion-link" href="#" target="_blank" rel="noopener" hidden>📍 Abrir ubicación en Maps ↗</a>
       </div>
 
       <p class="aviso-cuota"><strong>Importante:</strong> si te anotas y no vas a la cancha, de igual forma se te cobra tu cuota.</p>
@@ -501,7 +507,7 @@
       ? `de ${horaInicio} a ${formatearHora(evento.horaFin)}`
       : `a las ${horaInicio}`;
 
-    document.getElementById("fecha").textContent = `${fechaTexto}, ${rangoHora}`;
+    document.getElementById("fecha").textContent = `🗓️ ${fechaTexto}, ${rangoHora}`;
 
     document.getElementById("cancha").textContent =
       evento.nombreCancha ? "Cancha: " + evento.nombreCancha : "";
